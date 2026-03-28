@@ -1,22 +1,27 @@
-# Project Requirements
-
-<!-- This file is populated by the orchestrator with the client's plan. -->
-<!-- Claude reads this file as the single source of truth for what to build. -->
+# Daily Task Manager
 
 ## Overview
-_To be filled by the AI pipeline_
+The Daily Task Manager is a simple todo app designed for individuals to manage their daily tasks and increase productivity. The app provides a straightforward way to add, edit, and delete tasks, and mark them as completed. The overall visual tone is minimal and practical.
 
 ## Pages
-_To be filled by the AI pipeline_
+- **Task List** (`/`) — a basic list displaying task titles and due dates, with the ability to add, edit, and delete tasks
 
 ## Features
-_To be filled by the AI pipeline_
+- Add new tasks with title and due date
+- Edit existing tasks
+- Delete tasks
+- Mark tasks as completed with a checkbox
 
 ## Design Preferences
-_To be filled by the AI pipeline_
+- **Style:** minimal
+- **Colors:** Tailwind defaults
+- **Typography:** Tailwind defaults
+- **Tone:** neutral and practical
+- **Platform:** most practical default (responsive design assumed)
 
 ## Data & Auth
-_To be filled by the AI pipeline_
+- No authentication — fully public
+- All data is static / mock data only (no external data storage needed)
 
 ## Integrations
-_To be filled by the AI pipeline_
+- None — self-contained application
