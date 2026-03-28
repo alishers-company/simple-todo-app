@@ -1,0 +1,73 @@
+name: Claude – Generate Prototype
+
+on:
+  issues:
+    types: [assigned]
+
+jobs:
+  generate:
+    # Trigger only when assigned to the Claude GitHub App
+    if: |
+      github.event.assignee.login == 'claude[bot]' ||
+      github.event.assignee.login == 'claude'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate with Claude
+        id: claude
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            A client project has been assigned to you.
+
+            **Title:** ${{ github.event.issue.title }}
+
+            **Requirements (from issue body):**
+            ${{ github.event.issue.body }}
+
+            Steps to follow:
+            1. Read `.github/copilot-instructions.md` — follow every rule there exactly
+            2. Read `PLAN.md` — this is the full project plan pushed by the orchestrator.
+               The issue body and PLAN.md contain the same requirements; use PLAN.md as the
+               canonical source since it is already structured for your build instructions.
+            3. Generate all required source files for the project based on PLAN.md
+            4. Do NOT modify or delete these pre-configured files:
+               - `vite.config.ts`
+               - `package.json`
+               - `tsconfig.json` / `tsconfig.app.json` / `tsconfig.node.json`
+               - `src/vite-env.d.ts`
+               - `.github/workflows/deploy-pages.yml`
+               - `.github/workflows/claude.yml`
+               - `.github/copilot-instructions.md`
+
+      - name: Merge Claude's PR to main
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Give GitHub a moment to register the PR
+          sleep 10
+          # Find the PR created by Claude for this run
+          PR=$(gh pr list --state open --author "claude[bot]" --json number --jq '.[0].number')
+          if [ -z "$PR" ]; then
+            # Fallback: most recently created open PR
+            PR=$(gh pr list --state open --json number,createdAt --jq 'sort_by(.createdAt) | reverse | .[0].number')
+          fi
+          if [ -n "$PR" ]; then
+            # Use --auto so GitHub waits for required checks before merging
+            gh pr merge "$PR" --squash --delete-branch --auto
+          fi
+
+      - name: Close issue
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue close ${{ github.event.issue.number }} --comment "Prototype generated and deployed to GitHub Pages."
